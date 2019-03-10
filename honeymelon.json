@@ -1,0 +1,82 @@
+{
+  "dataset_reader": {
+    "type": "seq2seq",
+    "source_token_indexers": {
+      "tokens": {
+        "type": "single_id"
+      }
+    },
+    "target_token_indexers": {
+      "tokens": {
+        "type": "single_id",
+        "lowercase_tokens": true,
+        "namespace": "target_tokens"
+      }
+    },
+    "lazy": true
+  },
+  "vocabulary": {
+    "directory_path": "/mnt/raid/data/xuri3814/tldr-data/tldr_vocab20k"
+  },
+  "train_data_path": "/mnt/raid/data/xuri3814/tldr-data/tldr-train-max66-15.tsv",
+  "validation_data_path": "/mnt/raid/data/xuri3814/tldr-data/tldr-valid.tsv",
+  "model": {
+    "type": "simple_seq2seq",
+    "source_embedder": {
+      "type": "basic",
+      "token_embedders": {
+        "tokens": {
+          "type": "embedding",
+          "pretrained_file": "/mnt/raid/data/xuri3814/tldr-data/tldr_fasttext_embeddings.vec",
+          "embedding_dim": 100
+        }
+      }
+    },
+    "encoder": {
+      "type": "gru",
+      "bidirectional": false,
+      "input_size": 100,
+      "hidden_size": 100,
+      "num_layers": 1,
+      "dropout": 0.2
+    },
+    "max_decoding_steps": 12,
+    "beam_size": 5,
+    "attention_function": {
+      "type": "linear",
+      "tensor_1_dim": 100,
+      "tensor_2_dim": 100,
+      "activation": "tanh"
+    },
+    "scheduled_sampling_ratio": 0.25
+  },
+  "iterator": {
+    "type": "bucket",
+    "sorting_keys": [
+      ["source_tokens", "num_tokens"],
+      ["target_tokens", "num_tokens"]
+    ],
+    "biggest_batch_first": true,
+    "batch_size": 8,
+    "max_instances_in_memory": 100000,
+    "maximum_samples_per_batch": [
+      "num_tokens",
+      1200
+    ],
+    "instances_per_epoch": 20000,
+  },
+  "trainer": {
+    "num_epochs": 5,
+    "patience": 2,
+    "grad_clipping": 5.0,
+    "grad_norm": 2.0,
+    "validation_metric": "-loss",
+    "num_serialized_models_to_keep": 5,
+    "should_log_learning_rate": true,
+    "cuda_device": 0,
+    "optimizer": {
+      "type": "adagrad",
+      "lr": 0.25
+    }
+  }
+}
